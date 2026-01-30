@@ -8,15 +8,18 @@ public class ReviewService {
 
     private ReviewDAO dao = new ReviewDAO();
 
-    public boolean addReview(Review r) {
-        if (r.getRating() < 1 || r.getRating() > 5) {
-            System.out.println("Rating must be between 1 and 5");
-            return false;
-        }
+    // ✅ MUST RETURN BOOLEAN
+    public boolean addReview(int productId, String email, int rating, String comment) {
+        Review r = new Review();
+        r.setProductId(productId);
+        r.setBuyerEmail(email);
+        r.setRating(rating);
+        r.setComment(comment);
+
         return dao.addReview(r);
     }
 
-    public List<Review> getReviews(int productId) {
+    public List<Review> getReviewsByProduct(int productId) {
         return dao.getReviewsByProduct(productId);
     }
 }

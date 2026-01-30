@@ -5,25 +5,46 @@ import model.User;
 
 public class UserService {
 
-    private UserDAO userDAO = new UserDAO();
+    private UserDAO dao = new UserDAO();
 
-    public boolean registerUser(User user) {
-        // Business rules
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            System.out.println("Invalid email format");
-            return false;
-        }
-
-        if (!user.getRole().equalsIgnoreCase("BUYER") &&
-            !user.getRole().equalsIgnoreCase("SELLER")) {
-            System.out.println("Role must be BUYER or SELLER");
-            return false;
-        }
-
-        return userDAO.registerUser(user);
+    public boolean registerUser(User u) {
+        return dao.registerUser(u);
     }
 
-    public User login(String email, String password) {
-        return userDAO.login(email, password);
+    public User login(String email, String pass) {
+        return dao.login(email, pass);
     }
+
+    // ================= FORGOT PASSWORD =================
+    public boolean verifySecurity(String email, String answer) {
+        return dao.verifySecurity(email, answer);
+    }
+
+    public boolean changePassword(String email, String newPass) {
+        return dao.changePassword(email, newPass);
+    }
+
+    public boolean forgotPassword(String email, String answer, String newPass) {
+        if (verifySecurity(email, answer)) {
+            return changePassword(email, newPass);
+        }
+        return false;
+    }
+// ================= CONTROLLER WRAPPERS =================
+
+public boolean register(model.User user) {
+    return dao.registerUser(user);
+}
+
+public String getSecurityQuestion(String email) {
+    return dao.getSecurityQuestion(email);
+}
+
+public boolean resetPassword(String email, String answer, String newPass) {
+    if (dao.verifySecurity(email, answer)) {
+        return dao.changePassword(email, newPass);
+    }
+    return false;
+}
+
 }

@@ -3,25 +3,18 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import model.User;
 import util.DBUtil;
 
 public class UserDAO {
 
-    private static final String INSERT_USER_SQL =
-        "INSERT INTO users (user_id, name, email, password, role, security_question, security_answer) " +
-        "VALUES (users_seq.NEXTVAL, ?, ?, ?, ?, ?, ?)";
-
-    private static final String FIND_BY_EMAIL_SQL =
-        "SELECT user_id, name, email, password, role, security_question, security_answer " +
-        "FROM users WHERE email = ?";
-
-    // Register user
+    // ================= REGISTER =================
     public boolean registerUser(User user) {
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(INSERT_USER_SQL)) {
+        String sql = "INSERT INTO users VALUES (USERS_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, SYSDATE)";
+
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, user.getName());
             ps.setString(2, user.getEmail());
@@ -32,35 +25,97 @@ public class UserDAO {
 
             return ps.executeUpdate() > 0;
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    // Login user
+    // ================= LOGIN =================
     public User login(String email, String password) {
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(FIND_BY_EMAIL_SQL)) {
+        String sql = "SELECT * FROM users WHERE email=? AND password=?";
+
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+            ps.setString(2, password);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                User u = new User();
+                u.setUserId(rs.getInt("user_id"));
+                u.setName(rs.getString("name"));
+                u.setEmail(rs.getString("email"));
+                u.setRole(rs.getString("role"));
+                return u;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // ================= GET SECURITY QUESTION =================
+    public String getSecurityQuestion(String email) {
+        String sql = "SELECT security_question FROM users WHERE email=?";
+
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                if (rs.getString("password").equals(password)) {
-                    User user = new User();
-                    user.setUserId(rs.getInt("user_id"));
-                    user.setName(rs.getString("name"));
-                    user.setEmail(rs.getString("email"));
-                    user.setRole(rs.getString("role"));
-                    user.setSecurityQuestion(rs.getString("security_question"));
-                    user.setSecurityAnswer(rs.getString("security_answer"));
-                    return user;
-                }
+                return rs.getString("security_question");
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
+
+   
+
+   
+// ================= VERIFY SECURITY ANSWER =================
+public boolean verifySecurity(String email, String answer) {
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(
+                 "SELECT COUNT(*) FROM users WHERE email=? AND security_answer=?")) {
+
+        ps.setString(1, email);
+        ps.setString(2, answer);
+
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+
+// ================= CHANGE PASSWORD =================
+public boolean changePassword(String email, String newPass) {
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(
+                 "UPDATE users SET password=? WHERE email=?")) {
+
+        ps.setString(1, newPass);
+        ps.setString(2, email);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+
 }

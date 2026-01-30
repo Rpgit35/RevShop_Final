@@ -1,46 +1,56 @@
 package service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
+import java.util.Scanner;
 import dao.OrderDAO;
-import dao.ProductDAO;
 import model.Order;
-import model.OrderItem;
-import model.Product;
 
 public class OrderService {
 
-    private OrderDAO orderDAO = new OrderDAO();
-    private ProductDAO productDAO = new ProductDAO();
+    private OrderDAO dao = new OrderDAO();
 
-    public int checkout(String buyerEmail, Map<Integer, Integer> cart) {
+    public void checkout(CartService cart,
+                          String buyerEmail,
+                          Scanner sc) {
 
-        List<OrderItem> items = new ArrayList<>();
-        double total = 0;
-
-        for (Map.Entry<Integer, Integer> entry : cart.entrySet()) {
-            int productId = entry.getKey();
-            int qty = entry.getValue();
-
-            for (Product p : productDAO.getAllProducts()) {
-                if (p.getProductId() == productId) {
-                    OrderItem item = new OrderItem();
-                    item.setProductId(productId);
-                    item.setQuantity(qty);
-                    item.setPrice(p.getPrice());
-                    items.add(item);
-                    total += p.getPrice() * qty;
-                }
-            }
+        if (cart.isEmpty()) {
+            System.out.println("Cart is empty!");
+            return;
         }
 
-        Order order = new Order();
-        order.setBuyerEmail(buyerEmail);
-        order.setItems(items);
-        order.setTotalAmount(total);
+        double total = 0;
+        for (int qty : cart.getCart().values()) {
+            total += qty * 100;
+        }
 
-        return orderDAO.createOrder(order);
+        System.out.print("Shipping Address: ");
+        String shipping = sc.nextLine();
+
+        System.out.print("Billing Address: ");
+        String billing = sc.nextLine();
+
+        System.out.println("Payment: 1.COD 2.UPI 3.CARD");
+        int ch = Integer.parseInt(sc.nextLine());
+
+        String pay = ch == 1 ? "COD" : ch == 2 ? "UPI" : "CARD";
+
+        dao.createOrder(buyerEmail,
+                cart.getCart(),
+                total,
+                shipping,
+                billing,
+                pay);
+
+        cart.clearCart();
+
+        System.out.println("Order placed! Rs." + total + " | " + pay);
+    }
+
+    public List<Order> myOrders(String email) {
+        return dao.getOrdersByBuyer(email);
+    }
+
+    public List<Order> sellerOrders(String sellerEmail) {
+        return dao.getOrdersForSeller(sellerEmail);
     }
 }

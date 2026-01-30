@@ -8,8 +8,8 @@ public class DBUtil {
 
     private static final String URL =
         "jdbc:oracle:thin:@localhost:1521:XE";
-    private static final String USER = "revshop";
-    private static final String PASSWORD = "revshop";
+    private static final String USER = "REVSHOP";
+    private static final String PASSWORD = "revshop123";
 
     static {
         try {

@@ -11,15 +11,18 @@ import util.DBUtil;
 
 public class ReviewDAO {
 
+    // ================= ADD REVIEW =================
     public boolean addReview(Review r) {
         try (Connection con = DBUtil.getConnection();
              PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO reviews VALUES (reviews_seq.NEXTVAL, ?, ?, ?, ?, SYSDATE)")) {
+                "INSERT INTO reviews (review_id, product_id, buyer_email, rating, review_comment, created_at) " +
+                "VALUES (reviews_seq.NEXTVAL, ?, ?, ?, ?, SYSDATE)")) {
 
             ps.setInt(1, r.getProductId());
             ps.setString(2, r.getBuyerEmail());
             ps.setInt(3, r.getRating());
             ps.setString(4, r.getComment());
+
             return ps.executeUpdate() > 0;
 
         } catch (Exception e) {
@@ -28,12 +31,13 @@ public class ReviewDAO {
         }
     }
 
+    // ================= GET REVIEWS FOR PRODUCT =================
     public List<Review> getReviewsByProduct(int productId) {
-        List<Review> list = new ArrayList<>();
+        List<Review> list = new ArrayList<Review>();
 
         try (Connection con = DBUtil.getConnection();
              PreparedStatement ps = con.prepareStatement(
-                "SELECT * FROM reviews WHERE product_id = ?")) {
+                "SELECT * FROM reviews WHERE product_id = ? ORDER BY created_at DESC")) {
 
             ps.setInt(1, productId);
             ResultSet rs = ps.executeQuery();
@@ -44,7 +48,8 @@ public class ReviewDAO {
                 r.setProductId(rs.getInt("product_id"));
                 r.setBuyerEmail(rs.getString("buyer_email"));
                 r.setRating(rs.getInt("rating"));
-                r.setComment(rs.getString("review_comment"));
+		r.setComment(rs.getString("review_comment"));
+
 
                 list.add(r);
             }
