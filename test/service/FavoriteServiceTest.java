@@ -1,29 +1,23 @@
 package service;
 
-import org.junit.*;
+import org.junit.Test;
 import static org.junit.Assert.*;
-
 import java.util.List;
+import model.Product;
 
 public class FavoriteServiceTest {
 
-    private FavoriteService service;
+    private FavoriteService service = new FavoriteService();
 
-    @Before
-    public void setup() {
-        service = new FavoriteService();
+    @Test
+    public void testAddFavorite() {
+        boolean result = service.add("junit_user@test.com", 1);
+        assertTrue(result);
     }
 
     @Test
-    public void testAddAndGetFavorites() {
-        service.add(
-                "junit_user@test.com",
-                1
-        );
-
-        List<Integer> favs =
-                service.getFavorites("junit_user@test.com");
-
-        assertNotNull(favs);
+    public void testGetFavorites() {
+        List<Product> list = service.getFavorites("junit_user@test.com");
+        assertNotNull(list);
     }
 }

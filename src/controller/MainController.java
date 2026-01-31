@@ -52,6 +52,12 @@ public class MainController {
         sc.close();
     }
 
+    // ================= EMAIL VALIDATION =================
+    private static boolean isValidGmail(String email) {
+        if (email == null) return false;
+        return email.toLowerCase().endsWith("@gmail.com");
+    }
+
     // ================= REGISTER =================
     private static void register(Scanner sc) {
         User u = new User();
@@ -60,7 +66,13 @@ public class MainController {
         u.setName(sc.nextLine());
 
         System.out.print("Email: ");
-        u.setEmail(sc.nextLine());
+        String email = sc.nextLine();
+
+        if (!isValidGmail(email)) {
+            System.out.println("Invalid email. Only @gmail.com is allowed.");
+            return;
+        }
+        u.setEmail(email);
 
         System.out.print("Password: ");
         u.setPassword(sc.nextLine());
@@ -75,7 +87,11 @@ public class MainController {
         u.setSecurityAnswer(sc.nextLine());
 
         boolean result = userService.registerUser(u);
-        System.out.println(result ? "Registration successful!" : "Registration failed!");
+        if (result) {
+            System.out.println("Registration successful!");
+        } else {
+            System.out.println("Registration failed!");
+        }
     }
 
     // ================= LOGIN =================
@@ -89,7 +105,7 @@ public class MainController {
         User user = userService.login(email, password);
 
         if (user == null) {
-            System.out.println("Invalid login!");
+            System.out.println("Invalid login.");
             return;
         }
 
@@ -121,7 +137,11 @@ public class MainController {
         String newPass = sc.nextLine();
 
         boolean result = userService.resetPassword(email, answer, newPass);
-        System.out.println(result ? "Password reset successful!" : "Password reset failed!");
+        if (result) {
+            System.out.println("Password reset successful!");
+        } else {
+            System.out.println("Password reset failed!");
+        }
     }
 
     // ================= BUYER MENU =================
@@ -137,7 +157,9 @@ public class MainController {
             System.out.println("7. Add Review");
             System.out.println("8. Add Favorite");
             System.out.println("9. My Notifications");
-            System.out.println("10. Logout");
+            System.out.println("10. View Favorites");
+            System.out.println("11. Cancel Order");
+            System.out.println("12. Logout");
             System.out.print("Choose: ");
 
             int ch = Integer.parseInt(sc.nextLine());
@@ -172,7 +194,7 @@ public class MainController {
                 int qty = Integer.parseInt(sc.nextLine());
 
                 cartService.addToCart(id, qty);
-                System.out.println("Added to cart!");
+                System.out.println("Added to cart.");
             }
 
             else if (ch == 4) {
@@ -181,7 +203,7 @@ public class MainController {
 
             else if (ch == 5) {
                 orderService.checkout(cartService, user.getEmail(), sc);
-                notifier.notify(user.getEmail(), "Your order has been placed!");
+                notifier.notify(user.getEmail(), "Your order has been placed.");
             }
 
             else if (ch == 6) {
@@ -204,7 +226,11 @@ public class MainController {
                 String comment = sc.nextLine();
 
                 boolean result = reviewService.addReview(pid, user.getEmail(), rating, comment);
-                System.out.println(result ? "Review added!" : "Failed to add review");
+                if (result) {
+                    System.out.println("Review added.");
+                } else {
+                    System.out.println("Failed to add review.");
+                }
             }
 
             else if (ch == 8) {
@@ -212,13 +238,37 @@ public class MainController {
                 int pid = Integer.parseInt(sc.nextLine());
 
                 boolean result = favoriteService.add(user.getEmail(), pid);
-                System.out.println(result ? "Added to favorites!" : "Failed to add favorite");
+                if (result) {
+                    System.out.println("Added to favorites.");
+                } else {
+                    System.out.println("Failed to add favorite.");
+                }
             }
 
-            else if (ch == 9) {
-                List<String> notes = notifier.myNotifications(user.getEmail());
-                for (String s : notes) {
-                    System.out.println(s);
+            // ===== VIEW FAVORITES =====
+            else if (ch == 10) {
+                List<Product> favs = favoriteService.getFavorites(user.getEmail());
+                if (favs.isEmpty()) {
+                    System.out.println("No favorites yet.");
+                } else {
+                    System.out.println("\n--- FAVORITES ---");
+                    for (Product p : favs) {
+                        System.out.println(p.getProductId() + " | " + p.getName() + " | Rs." + p.getPrice());
+                    }
+                }
+            }
+
+            // ===== CANCEL ORDER =====
+            else if (ch == 11) {
+                System.out.print("Enter Order ID to cancel: ");
+                int oid = Integer.parseInt(sc.nextLine());
+
+                boolean result = orderService.cancelOrder(oid, user.getEmail());
+                if (result) {
+                    System.out.println("Order cancelled successfully.");
+                    notifier.notify(user.getEmail(), "Your order " + oid + " has been cancelled.");
+                } else {
+                    System.out.println("Cancel failed. Order not found.");
                 }
             }
 
@@ -258,7 +308,7 @@ public class MainController {
                 p.setMrp(Double.parseDouble(sc.nextLine()));
 
                 if (p.getPrice() > p.getMrp()) {
-                    System.out.println("ERROR: Price cannot be greater than MRP!");
+                    System.out.println("ERROR: Price cannot be greater than MRP.");
                     continue;
                 }
 
@@ -274,7 +324,11 @@ public class MainController {
                 p.setSellerEmail(user.getEmail());
 
                 boolean result = productService.addProduct(p);
-                System.out.println(result ? "Product added!" : "Failed to add product");
+                if (result) {
+                    System.out.println("Product added.");
+                } else {
+                    System.out.println("Failed to add product.");
+                }
             }
 
             else if (ch == 2) {
@@ -288,7 +342,11 @@ public class MainController {
                 int stock = Integer.parseInt(sc.nextLine());
 
                 boolean result = productService.updateProduct(id, price, stock);
-                System.out.println(result ? "Product updated!" : "Update failed");
+                if (result) {
+                    System.out.println("Product updated.");
+                } else {
+                    System.out.println("Update failed.");
+                }
             }
 
             else if (ch == 3) {
@@ -296,7 +354,11 @@ public class MainController {
                 int id = Integer.parseInt(sc.nextLine());
 
                 boolean result = productService.deleteProduct(id);
-                System.out.println(result ? "Product deleted!" : "Delete failed");
+                if (result) {
+                    System.out.println("Product deleted.");
+                } else {
+                    System.out.println("Delete failed.");
+                }
             }
 
             else if (ch == 4) {

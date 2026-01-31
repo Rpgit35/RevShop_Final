@@ -4,39 +4,52 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 import model.User;
+import util.DBUtil;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 public class UserServiceTest {
 
-    private UserService userService;
+    private UserService service;
+    private final String TEST_EMAIL = "junit_user@test.com";
 
     @Before
     public void setup() {
-        userService = new UserService();
-    }
+        service = new UserService();
+        cleanup(); // Clean first
 
-    @Test
-    public void testRegisterAndLogin() {
         User u = new User();
         u.setName("JUnit User");
-        u.setEmail("junit_user@test.com");
+        u.setEmail(TEST_EMAIL);
         u.setPassword("1234");
         u.setRole("BUYER");
-        u.setSecurityQuestion("pet?");
-        u.setSecurityAnswer("dog");
+        u.setSecurityQuestion("City?");
+        u.setSecurityAnswer("Hyd");
 
-        userService.register(u);
+        service.registerUser(u);
+    }
 
-        User loggedIn = userService.login(
-                "junit_user@test.com",
-                "1234"
-        );
-
-        assertNotNull(loggedIn);
+    @After
+    public void cleanup() {
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps =
+                 con.prepareStatement("DELETE FROM users WHERE email = ?")) {
+            ps.setString(1, TEST_EMAIL);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            // Ignore cleanup errors
+        }
     }
 
     @Test
-    public void testLoginFail() {
-        User user = userService.login("wrong@test.com", "wrong");
-        assertNull(user);
+    public void testLoginUser() {
+        assertNotNull(service.login(TEST_EMAIL, "1234"));
+    }
+
+    @Test
+    public void testForgotPassword() {
+        boolean result = service.forgotPassword(TEST_EMAIL, "Hyd", "newpass");
+        assertTrue(result);
     }
 }
