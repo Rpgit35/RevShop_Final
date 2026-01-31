@@ -2,8 +2,12 @@ package service;
 
 import dao.UserDAO;
 import model.User;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+s
 
 public class UserService {
+    private static final Logger logger = LogManager.getLogger(UserService.class);
 
     private UserDAO dao = new UserDAO();
 
