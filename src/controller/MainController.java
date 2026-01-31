@@ -14,6 +14,9 @@ import service.OrderService;
 import service.ProductService;
 import service.ReviewService;
 import service.UserService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class MainController {
 
@@ -22,6 +25,8 @@ public class MainController {
     private static CartService cartService = new CartService();
     private static OrderService orderService = new OrderService();
     private static ReviewService reviewService = new ReviewService();
+    private static final Logger logger = LogManager.getLogger(MainController.class);
+
     private static FavoriteService favoriteService = new FavoriteService();
     private static NotificationService notifier = new NotificationService();
 
@@ -108,7 +113,7 @@ public class MainController {
             System.out.println("Invalid login.");
             return;
         }
-
+        logger.info("User logged in: " + user.getEmail());
         System.out.println("Welcome " + user.getName());
 
         if ("SELLER".equalsIgnoreCase(user.getRole())) {
