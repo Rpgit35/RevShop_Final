@@ -59,3 +59,27 @@ This project follows a **layered architecture (MVC + DAO + Service)** and includ
 
 The project follows a **Layered Architecture**:
 
+## ⚙️ Setup Instructions (Eclipse IDE)
+
+Follow these steps to set up and run the **RevShop Java Console Application** using **Eclipse IDE**.
+
+---
+
+## 🖥️ Prerequisites
+
+Make sure you have:
+
+- **Java JDK 7 or higher**
+- **Eclipse IDE for Java Developers**
+- **Oracle 10g XE Database**
+- **Git**
+- **Oracle JDBC Driver (`ojdbc14.jar`)**
+
+---
+
+## 📥 Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/your-username/RevShop.git
+
+
